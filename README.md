@@ -1,1 +1,1 @@
-prayer-clock
+# Prayer Clock
