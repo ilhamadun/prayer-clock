@@ -30,6 +30,8 @@
   :test:
     - +:test/**
     - -:test/support
+  :include:
+    - include/**
   :source:
     - src/**
   :support:
