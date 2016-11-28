@@ -49,6 +49,16 @@
     - *common_defines
     - TEST
 
+:flags:
+  :test:
+    :compile:
+      :*:
+        - -std=c99
+  :release:
+    :compile:
+      :*:
+        - -std=c99
+
 :tools:
   :release_compiler:
     :executable: avr-gcc
