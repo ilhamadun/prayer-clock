@@ -22,30 +22,35 @@ static const uint8_t seven_segment_truth_table[10] = {
 static uint8_t normalize_digit(uint8_t digit);
 static uint8_t decode_common_cathode(uint8_t digit);
 static uint8_t decode_common_anode(uint8_t digit);
-static uint8_t reverse_segments(uint8_t segments);
+static uint8_t add_decimal_point(seven_segment_t seven_segment, uint8_t segments, bool decimal_point);
+static uint8_t reverse_segments(seven_segment_t seven_segment, uint8_t segments);
 
-struct seven_segment_t initialize_seven_segment(enum common_type type, enum segment_order order) {
+
+seven_segment_t initialize_seven_segment(common_t type, segment_order_t order, bool decimal_point)
+{
 	struct seven_segment_t seven_segment;
 	seven_segment.common = type;
 	seven_segment.order = order;
+	seven_segment.decimal_point = decimal_point;
 
 	return seven_segment;
 }
 
-uint8_t decode_digit_to_seven_segment(struct seven_segment_t seven_segment, uint8_t digit)
+uint8_t decode_digit_to_seven_segment(seven_segment_t seven_segment, uint8_t digit, bool decimal_point)
 {
 	uint8_t segments;
 	digit = normalize_digit(digit);
 
-	if (seven_segment.common == COMMON_CATHODE) {
+	if (seven_segment.common == COMMON_CATHODE)
 		segments = decode_common_cathode(digit);
-	} else {
+	else
 		segments = decode_common_anode(digit);
-	}
 
-	if (seven_segment.order == G_TO_A) {
-		segments = reverse_segments(segments);
-	}
+	if (seven_segment.decimal_point == DECIMAL_POINT_ENABLED)
+		segments = add_decimal_point(seven_segment, segments, decimal_point);
+
+	if (seven_segment.order == G_TO_A)
+		segments = reverse_segments(seven_segment, segments);
 
 	return segments;
 }
@@ -68,12 +73,28 @@ uint8_t decode_common_anode(uint8_t digit)
 	return ~(seven_segment_truth_table[digit] | 0x80);
 }
 
-uint8_t reverse_segments(uint8_t segments)
+uint8_t add_decimal_point(seven_segment_t seven_segment, uint8_t segments, bool decimal_point)
+{
+	segments <<= 1;
+
+	if (seven_segment.common == COMMON_CATHODE) {
+		segments |= (decimal_point == DECIMAL_POINT_ON ? 1 : 0);
+	} else {
+		segments |= (decimal_point == DECIMAL_POINT_ON ? 0 : 1);
+	}
+
+	return segments;
+}
+
+uint8_t reverse_segments(seven_segment_t seven_segment, uint8_t segments)
 {
 	uint8_t reversed = segments;
 	reversed = (reversed & 0xAA) >> 1 | (reversed & 0x55) << 1;
 	reversed = (reversed & 0xCC) >> 2 | (reversed & 0x33) << 2;
 	reversed = (reversed & 0xF0) >> 4 | (reversed & 0x0F) << 4;
 
-	return reversed >> 1;
+	if (seven_segment.decimal_point == DECIMAL_POINT_DISABLED)
+		reversed >>= 1;
+
+	return reversed;
 }

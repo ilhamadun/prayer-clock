@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "unity.h"
 #include "seven_segment_decoder.h"
 
@@ -5,16 +6,16 @@
 void setUp(void) {}
 void tearDown(void) {}
 
-void decode_seven_segments(struct seven_segment_t seven_segment, uint8_t actual_segments[])
+void decode_seven_segments(struct seven_segment_t seven_segment, uint8_t actual_segments[], bool decimal_point)
 {
 	for (int i = 0; i < 10; i++) {
-		actual_segments[i] = decode_digit_to_seven_segment(seven_segment, i);
+		actual_segments[i] = decode_digit_to_seven_segment(seven_segment, i, decimal_point);
 	}
 }
 
 void test_decode_common_cathode_seven_segment_with_order_a_to_g(void)
 {
-	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_CATHODE, A_TO_G);
+	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_CATHODE, A_TO_G, DECIMAL_POINT_DISABLED);
 	uint8_t actual_segments[10];
 	uint8_t expected_segments[10] = {
 		0b1111110, // 0
@@ -29,13 +30,13 @@ void test_decode_common_cathode_seven_segment_with_order_a_to_g(void)
 		0b1111011  // 9
 	};
 
-	decode_seven_segments(seven_segment, actual_segments);
+	decode_seven_segments(seven_segment, actual_segments, DECIMAL_POINT_OFF);
 	TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_segments, actual_segments, 10);
 }
 
 void test_decode_common_cathode_seven_segment_with_order_g_to_a(void)
 {
-	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_CATHODE, G_TO_A);
+	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_CATHODE, G_TO_A, DECIMAL_POINT_DISABLED);
 	uint8_t actual_segments[10];
 	uint8_t expected_segments[10] = {
 		0b0111111, // 0
@@ -50,13 +51,13 @@ void test_decode_common_cathode_seven_segment_with_order_g_to_a(void)
 		0b1101111  // 9
 	};
 
-	decode_seven_segments(seven_segment, actual_segments);
+	decode_seven_segments(seven_segment, actual_segments, DECIMAL_POINT_OFF);
 	TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_segments, actual_segments, 10);
 }
 
 void test_decode_common_anode_seven_segment_with_order_a_to_g(void)
 {
-	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_ANODE, A_TO_G);
+	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_ANODE, A_TO_G, DECIMAL_POINT_DISABLED);
 	uint8_t actual_segments[10];
 	uint8_t expected_segments[10] = {
 		0b0000001, // 0
@@ -71,13 +72,13 @@ void test_decode_common_anode_seven_segment_with_order_a_to_g(void)
 		0b0000100  // 9
 	};
 
-	decode_seven_segments(seven_segment, actual_segments);
+	decode_seven_segments(seven_segment, actual_segments, DECIMAL_POINT_OFF);
 	TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_segments, actual_segments, 10);
 }
 
 void test_decode_common_anode_seven_segment_with_order_g_to_a(void)
 {
-	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_ANODE, G_TO_A);
+	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_ANODE, G_TO_A, DECIMAL_POINT_DISABLED);
 	uint8_t actual_segments[10];
 	uint8_t expected_segments[10] = {
 		0b1000000, // 0
@@ -92,14 +93,54 @@ void test_decode_common_anode_seven_segment_with_order_g_to_a(void)
 		0b0010000  // 9
 	};
 
-	decode_seven_segments(seven_segment, actual_segments);
+	decode_seven_segments(seven_segment, actual_segments, DECIMAL_POINT_OFF);
 	TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_segments, actual_segments, 10);
+}
+
+void test_decode_common_cathode_with_decimal_point(void)
+{
+	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_CATHODE, A_TO_G, DECIMAL_POINT_ENABLED);
+	uint8_t actual_segments[10];
+	uint8_t expected_point_off_segments[10] = {
+		0b11111100, 0b01100000, 0b11011010, 0b11110010, 0b01100110,
+		0b10110110, 0b10111110, 0b11100000, 0b11111110, 0b11110110
+	};
+	uint8_t expected_point_on_segments[10] = {
+		0b11111101, 0b01100001, 0b11011011, 0b11110011, 0b01100111,
+		0b10110111, 0b10111111, 0b11100001, 0b11111111, 0b11110111
+	};
+
+	decode_seven_segments(seven_segment, actual_segments, DECIMAL_POINT_OFF);
+	TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_point_off_segments, actual_segments, 10);
+
+	decode_seven_segments(seven_segment, actual_segments, DECIMAL_POINT_ON);
+	TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_point_on_segments, actual_segments, 10);
+}
+
+void test_decode_common_anode_with_decimal_point(void)
+{
+	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_ANODE, G_TO_A, DECIMAL_POINT_ENABLED);
+	uint8_t actual_segments[10];
+	uint8_t expected_point_off_segments[10] = {
+		0b11000000, 0b11111001, 0b10100100, 0b10110000, 0b10011001,
+		0b10010010, 0b10000010, 0b11111000, 0b10000000, 0b10010000
+	};
+	uint8_t expected_point_on_segments[10] = {
+		0b01000000, 0b01111001, 0b00100100, 0b00110000, 0b00011001,
+		0b00010010, 0b00000010, 0b01111000, 0b00000000, 0b00010000
+	};
+
+	decode_seven_segments(seven_segment, actual_segments, DECIMAL_POINT_OFF);
+	TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_point_off_segments, actual_segments, 10);
+
+	decode_seven_segments(seven_segment, actual_segments, DECIMAL_POINT_ON);
+	TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_point_on_segments, actual_segments, 10);
 }
 
 void test_decode_with_digit_bigger_than_9(void)
 {
-	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_CATHODE, A_TO_G);
-	uint8_t actual_segments = decode_digit_to_seven_segment(seven_segment, 12);
+	struct seven_segment_t seven_segment = initialize_seven_segment(COMMON_CATHODE, A_TO_G, DECIMAL_POINT_DISABLED);
+	uint8_t actual_segments = decode_digit_to_seven_segment(seven_segment, 12, false);
 
 	TEST_ASSERT_EQUAL_HEX8(0x6D, actual_segments);
 }
