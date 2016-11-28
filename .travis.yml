@@ -1,0 +1,7 @@
+language: c
+compiler:
+  - gcc
+
+install: gem install ceedling
+
+script: ceedling test:all
