@@ -2,6 +2,18 @@ language: c
 compiler:
   - gcc
 
-install: gem install ceedling
+addons:
+  apt:
+    packages:
+      - gcc-avr
+      - binutils-avr
+      - avr-libc
+
+before_script:
+  - mkdir build
+  - mkdir -p test/support
+
+install:
+  - gem install ceedling
 
 script: ceedling test:all
